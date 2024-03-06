@@ -2,10 +2,18 @@ import {
   CallHandler,
   ExecutionContext,
   NestInterceptor,
+  RequestTimeoutException,
   UseInterceptors,
 } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
-import { Observable, map } from 'rxjs';
+import {
+  Observable,
+  TimeoutError,
+  catchError,
+  map,
+  throwError,
+  timeout,
+} from 'rxjs';
 
 interface ClassConstructor {
   new (...args: any[]): unknown;
@@ -34,6 +42,13 @@ export class SerializeInterceptor implements NestInterceptor {
         return plainToClass(this.dto, data, {
           excludeExtraneousValues: true,
         });
+      }),
+      timeout(5000),
+      catchError((err) => {
+        if (err instanceof TimeoutError) {
+          return throwError(() => new RequestTimeoutException());
+        }
+        return throwError(() => err);
       }),
     );
   }
