@@ -24,6 +24,9 @@ export class User {
   @CreateDateColumn()
   createdAt: Date;
 
+  @Column({ default: true })
+  admin: boolean;
+
   @OneToMany(() => Report, (report: Report) => report.user)
   reports: Report[];
 
